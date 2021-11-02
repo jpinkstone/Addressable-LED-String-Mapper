@@ -1,5 +1,5 @@
+from leds_class import leds
 import cv2
-import sacn
 import time
 
 cv2.namedWindow("LED Mapper Capture")
@@ -8,35 +8,13 @@ vc = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 locations = {}
 led_index = 0
 num_leds = 50
-data_stream = [0] * 150
 start = False
 
-# Setup e1.31 sending
-sender = sacn.sACNsender()
-sender.start()
-sender.activate_output(1)
-sender[1].destination = "192.168.1.2"
+pixels = leds("192.168.1.2", num_leds)
 
 
-def data(pixel, red, green, blue):
-    global data_stream
-    data_stream[pixel * 3] = red
-    data_stream[(pixel * 3) + 1] = green
-    data_stream[(pixel * 3) + 2] = blue
-
-
-def send_data():
-    global data_stream
-    sender[1].dmx_data = data_stream
-
-
-def clear_data():
-    global data_stream
-    data_stream = [0] * 150
-
-
-data(led_index, 255, 255, 255)
-send_data()
+pixels.data(led_index, [255, 255, 255])
+pixels.send_data()
 
 while cv2.getWindowProperty('LED Mapper Capture', 0) >= 0:
     rval, frame = vc.read()
@@ -61,14 +39,14 @@ while cv2.getWindowProperty('LED Mapper Capture', 0) >= 0:
         locations[led_index] = maxLoc
         print("LED " + str(led_index) + " location recorded as: " + str(maxLoc))
         if led_index == num_leds - 1:
-            clear_data()
-            send_data()
+            pixels.fill_data([0, 0, 0])
+            pixels.send_data()
             break
         else:
             led_index += 1
-            clear_data()
-            data(led_index, 255, 255, 255)
-            send_data()
+            pixels.fill_data([0, 0, 0])
+            pixels.data(led_index, [255, 255, 255])
+            pixels.send_data()
             time.sleep(1)
 
 with open('led_locs.txt', 'w') as file:
@@ -77,4 +55,4 @@ with open('led_locs.txt', 'w') as file:
 print("LED locations written to file.")
 
 cv2.destroyWindow("LED Mapper Capture")
-sender.stop()
+pixels.stop_data()
