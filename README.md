@@ -1,6 +1,6 @@
 # Addressable LED String Mapper
 
-This project maps RGB LED string pixels to a 2D plane for easier animation creation.
+This personal project maps RGB LED string pixels to a 2D plane for easier animation creation.
 
 ## Components
  - Host ESP8266 NodeMCU running WLED controlling the LED pixel string
